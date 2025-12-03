@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체스판 실습 - 규칙 배우기</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+    <style>
+        #github{
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 25px;
+}
+    #link{
+        position: absolute;
+        bottom: 35px;
+        left: 10px;
+        width: 25px;
+    }
+    #stair{
+        background-image: url("이미지/계단.png");
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+        background-size: 20px 20px;
+        height: 30px;
+        line-height: 30px;
+    }
+    #dot{
+        background-image: url("이미지/점.png");
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+        background-size: 23px 23px;
+        height: 46px;
+        line-height: 46px;
+    }
+        body { background-color: #313131; color: white; margin: 0; }
+        .container-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { 
+            background-color: #222222; width: 150px; padding: 20px 20px 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5); position: fixed; 
+            height: 100%; transition: width 0.3s ease; display: flex;
+            flex-direction: column; z-index: 1000;
+        }
+        .sidebar.collapsed { width: 60px; padding: 20px 0; }
+        .sidebar.collapsed .btn span, .sidebar.collapsed .sidebar-text { display: none; }
+        .sidebar .btn { width: 100%; text-align: left; padding: 10px 0 10px 15px; border-radius: 0 !important; color: #ccc; }
+        .main-content {
+            flex-grow: 1; padding: 40px; margin-left: 150px; transition: margin-left 0.3s ease;
+        }
+        .sidebar.collapsed + .main-content { margin-left: 60px; }
+        .toggle-btn {
+            position: absolute; bottom: 65px; right: 0; transform: translateX(50%);
+            background: #222222; border: 1px solid #444; cursor: pointer;
+            padding: 5px 10px; border-radius: 5px; color: white; z-index: 1001;
+            transition: right 0.3s ease;
+        }
+        #main_img{ width: 100px; height: auto; display: block; margin: 0 auto 20px; }
+        .sidebar.collapsed #main_img { width: 40px; }
+
+        .board-container {
+            display: flex; flex-direction: column; align-items: center; padding-top: 20px;
+        }
+        #myBoard {
+            width: 500px; max-width: 90vw; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        .controls { margin-top: 20px; }
+        
+        /* 선택된 말과 이동 가능한 칸 하이라이트 */
+        .highlight-selected {
+            box-shadow: inset 0 0 3px 3px yellow !important;
+        }
+        .highlight-move {
+            position: relative;
+        }
+        .highlight-move::after {
+            content: '';
+            position: absolute;
+            width: 25%;
+            height: 25%;
+            background: rgba(0, 255, 0, 0.6);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .highlight-capture {
+            box-shadow: inset 0 0 0 3px rgba(255, 0, 0, 0.7) !important;
+        }
+        
+        #myBoard .square-55d63 {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-wrapper">
+    <nav class="sidebar" id="mySidebar">
+        <a href="index.html">
+            <img id="main_img" src="이미지/체스_배우기아이콘 .png" alt="메인 페이지로 이동">
+        </a>
+        <nav class="learning-steps">
+            <div class="text-light">
+            <p id="stair">단계 배우기</p>
+            </div>
+            
+                <button class="btn btn-dark ms-0" id="beginner-btn">초급</button>
+                <button class="btn btn-dark ms-0"  id="intermediate-btn">중급</button>
+                <button class="btn btn-dark ms-0" id="advanced-btn">고급</button>
+            
+        </nav>
+    
+        <nav class="detailed-sections">
+            <div class="text-light">
+            <p id="dot">세부 학습 주제</p>
+            </div>
+           
+                <button class="btn btn-dark ms-0" id="glossary-btn">용어 해설</button>
+                <button class="btn btn-dark ms-0" id="master-btn">유명 경기</button>
+                <button class="btn btn-dark ms-0" id="puzzles-btn">문제 풀기</button>
+                <button class="btn btn-dark ms-0" id="news-btn">오프닝  </button>
+            
+        </nav>
+        <button class="toggle-btn" id="toggleButton">
+            <span>◀</span> </button>
+            <a href="https://github.com/yeonwoo09seo-alt/ChessLearningWepPage/tree/main" target="_blank">
+                <img id="github" src="이미지/깃허브.png" alt="깃허브 주소">
+            </a>
+            <a href="https://tartan-look-7b4.notion.site/2025-10824-28d3723ec7b68151ba91c96ebb663b4f" target="_blank">
+                <img id="link" src="notion.png" alt="노션링크">
+            </a>
+    </nav>
+    
+    <main class="main-content" id="mainContent">
+        <div class="board-container">
+            <h2 class="text-light text-center mb-3">♟️ 말을 클릭하여 움직여 보세요 ♘</h2>
+            <p class="text-muted text-center mb-4">
+                먼저 이동할 말을 클릭하고, 다음으로 목적지 칸을 클릭하세요. <strong>체스 규칙</strong>에 맞는 움직임만 허용됩니다.
+            </p>
+
+            <div id="myBoard"></div>
+
+            <div class="controls">
+                <button id="resetPosition" class="btn btn-warning">초기 위치로</button>
+                <button id="flipBoard" class="btn btn-info">보드 뒤집기</button>
+            </div>
+            
+            <p id="status" class="mt-4 text-center"></p>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    const game = new Chess(); 
+    let board = null;
+    let selectedSquare = null;
+
+    // 하이라이트 제거
+    function removeHighlights() {
+        $('#myBoard .square-55d63').removeClass('highlight-selected highlight-move highlight-capture');
+    }
+
+    // 이동 가능한 칸 하이라이트
+    function highlightMoves(square) {
+        const moves = game.moves({ square: square, verbose: true });
+        
+        // 선택된 말 하이라이트
+        $('#myBoard .square-' + square).addClass('highlight-selected');
+        
+        // 이동 가능한 칸 하이라이트
+        moves.forEach(move => {
+            const squareEl = $('#myBoard .square-' + move.to);
+            if (move.captured) {
+                squareEl.addClass('highlight-capture');
+            } else {
+                squareEl.addClass('highlight-move');
+            }
+        });
+    }
+
+    // 칸 클릭 처리
+    function handleSquareClick(square) {
+        // 게임이 끝났으면 클릭 무시
+        if (game.game_over()) return;
+
+        const piece = game.get(square);
+        
+        // 첫 번째 클릭: 말 선택
+        if (selectedSquare === null) {
+            // 빈 칸이거나 상대 말이면 무시
+            if (!piece) return;
+            if ((piece.color === 'w' && game.turn() === 'b') || 
+                (piece.color === 'b' && game.turn() === 'w')) {
+                return;
+            }
+            
+            selectedSquare = square;
+            highlightMoves(square);
+        } 
+        // 두 번째 클릭: 목적지 선택
+        else {
+            // 같은 칸을 다시 클릭하면 선택 해제
+            if (square === selectedSquare) {
+                removeHighlights();
+                selectedSquare = null;
+                return;
+            }
+            
+            // 자기 편 말을 클릭하면 다른 말로 선택 변경
+            if (piece && 
+                ((piece.color === 'w' && game.turn() === 'w') || 
+                 (piece.color === 'b' && game.turn() === 'b'))) {
+                removeHighlights();
+                selectedSquare = square;
+                highlightMoves(square);
+                return;
+            }
+            
+            // 이동 시도
+            const move = game.move({
+                from: selectedSquare,
+                to: square,
+                promotion: 'q'
+            });
+            
+            if (move === null) {
+                // 잘못된 이동
+                removeHighlights();
+                selectedSquare = null;
+            } else {
+                // 정상 이동
+                board.position(game.fen());
+                removeHighlights();
+                selectedSquare = null;
+                updateStatus();
+            }
+        }
+    }
+
+    function updateStatus() {
+        let status = '';
+        let moveColor = game.turn() === 'w' ? 'White' : 'Black';
+
+        if (game.in_checkmate()) {
+            status = '게임 종료. ' + moveColor + ' 체크메이트!';
+        } 
+        else if (game.in_draw()) {
+            status = '게임 종료. 무승부입니다.';
+        } 
+        else {
+            status = moveColor + '의 차례입니다.';
+            if (game.in_check()) {
+                status += ' (체크 상태)';
+            }
+        } 
+        document.getElementById('status').innerHTML = status;
+    }
+
+    function initBoard() {
+        const config = {
+            draggable: false,
+            position: 'start'
+        };
+        
+        board = Chessboard('myBoard', config);
+        updateStatus();
+        
+        // 보드가 렌더링된 후 클릭 이벤트 바인딩
+        setTimeout(() => {
+            $('#myBoard .square-55d63').on('click', function(e) {
+                const square = $(this).attr('data-square');
+                if (square) {
+                    handleSquareClick(square);
+                }
+            });
+        }, 100);
+    }
+
+    $(document).ready(function() {
+        initBoard();
+
+        document.getElementById('resetPosition').addEventListener('click', () => {
+            game.reset();
+            board.start();
+            removeHighlights();
+            selectedSquare = null;
+            updateStatus();
+        });
+
+        document.getElementById('flipBoard').addEventListener('click', () => {
+            board.flip();
+            // 보드를 뒤집은 후 클릭 이벤트 다시 바인딩
+            setTimeout(() => {
+                $('#myBoard .square-55d63').off('click').on('click', function(e) {
+                    const square = $(this).attr('data-square');
+                    if (square) {
+                        handleSquareClick(square);
+                    }
+                });
+            }, 100);
+        });
+        
+        $(window).on('resize', board.resize);
+        
+        const sidebar = document.getElementById('mySidebar');
+        const toggleButton = document.getElementById('toggleButton');
+
+        if(sidebar && toggleButton) {
+             toggleButton.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                
+                const currentText = toggleButton.querySelector('span');
+                currentText.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+                
+                document.querySelectorAll('.sidebar-text, .sidebar .btn span').forEach(el => {
+                    el.style.display = sidebar.classList.contains('collapsed') ? 'none' : 'inline';
+                });
+                
+                const mainImg = document.getElementById('main_img');
+                if (mainImg) {
+                    mainImg.style.width = sidebar.classList.contains('collapsed') ? '40px' : '100px';
+                }
+                
+                setTimeout(() => {
+                    board.resize(); 
+                }, 300);
+            });
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
